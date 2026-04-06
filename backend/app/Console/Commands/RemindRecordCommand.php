@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class RemindRecordCommand extends Command
 {
-    protected $signature = 'records:remind';
+    protected $signature = 'records:remind {company? : ID филиала (если не указан — все филиалы)}';
 
     protected $description = 'Напоминания клиентам о записях: за 24 часа и за 2 часа';
 
@@ -24,6 +24,15 @@ class RemindRecordCommand extends Command
         if (empty($companies)) {
             $this->warn('Нет филиалов в конфигурации.');
             return self::SUCCESS;
+        }
+
+        $onlyCompany = $this->argument('company');
+        if ($onlyCompany) {
+            $companies = array_filter($companies, fn ($v, $k) => (string) $k === (string) $onlyCompany, ARRAY_FILTER_USE_BOTH);
+            if (empty($companies)) {
+                $this->warn("Филиал {$onlyCompany} не найден в конфигурации.");
+                return self::FAILURE;
+            }
         }
 
         $now = now();
@@ -51,7 +60,18 @@ class RemindRecordCommand extends Command
                 $dt = Carbon::parse($recordDate)->setTimezone(config('app.timezone'));
                 $diffMinutes = $now->diffInMinutes($dt, false);
 
-                $type = $this->detectReminderType($diffMinutes);
+                $createDate = $record['create_date'] ?? null;
+                $type = null;
+                if ($createDate) {
+                    $createdAt = Carbon::parse($createDate)->setTimezone(config('app.timezone'));
+                    $minutesSinceCreation = $now->diffInMinutes($createdAt, false);
+                    if ($minutesSinceCreation >= -5 && $minutesSinceCreation <= 0) {
+                        $type = 'confirm';
+                    }
+                }
+                if (!$type) {
+                    $type = $this->detectReminderType($diffMinutes);
+                }
                 if (!$type) {
                     continue;
                 }
@@ -128,6 +148,10 @@ class RemindRecordCommand extends Command
 
     protected function buildMessage(string $type, string $time, string $service, string $companyName): string
     {
+        if ($type === 'confirm') {
+            return "Вы записаны на {$service} в {$time} в 13 by Timati ({$companyName}). Ждём вас!";
+        }
+
         if ($type === '24h') {
             return "Напоминаем: завтра в {$time} у вас {$service} в 13 by Timati ({$companyName})";
         }

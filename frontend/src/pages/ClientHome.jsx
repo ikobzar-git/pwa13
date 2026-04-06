@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { companies, chat } from '../api';
+import { companies, chat, config, pushSubscribe } from '../api';
 import { useApp } from '../contexts/AppContext';
 import BookingFlow from '../components/BookingFlow';
 import ProfileSection from '../components/ProfileSection';
@@ -13,6 +13,29 @@ import ChatTab from './tabs/ChatTab';
 import { cs } from './client-tabs/clientTabStyles';
 
 const ClientHomeTab = lazy(() => import('./client-tabs/ClientHomeTab'));
+
+function urlB64ToUint8Array(base64) {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(b64);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function requestPushSubscription(vapidPublicKey) {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
+  const reg = await navigator.serviceWorker.ready;
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8Array(vapidPublicKey),
+  });
+  const json = sub.toJSON();
+  return {
+    endpoint: json.endpoint,
+    keys: json.keys || { p256dh: json.p256dh, auth: json.auth },
+  };
+}
 
 const TabFallback = () => (
   <div style={{ padding: '0 16px' }}>
@@ -81,6 +104,17 @@ export default function ClientHome({ onLogout, roleSwitch }) {
     const unreadInterval = setInterval(() => {
       chat.unreadCount().then(d => setUnreadCount(d.count)).catch(() => {});
     }, 30000);
+    config().then((c) => {
+      if (c.vapid_public_key) {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            requestPushSubscription(c.vapid_public_key)
+              .then((sub) => sub && pushSubscribe(sub))
+              .catch(() => {});
+          }
+        });
+      }
+    }).catch(() => {});
     return () => clearInterval(unreadInterval);
   }, []);
 

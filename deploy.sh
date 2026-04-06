@@ -15,6 +15,7 @@ echo "=== 2/4 Синхронизация бэкенда ==="
 eval $RSYNC --delete \
   --exclude='.env' --exclude='.env.deploy' --exclude='vendor' \
   --exclude='node_modules' --exclude='storage' --exclude='.claude' \
+  --exclude='bootstrap/cache' \
   backend/ $SERVER:/opt/pwa13/backend/
 
 echo ""
