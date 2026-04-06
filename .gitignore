@@ -1,0 +1,16 @@
+# Секреты
+.env
+.env.local
+.env.deploy
+backend/.env
+
+# Зависимости
+backend/vendor
+frontend/node_modules
+
+# Сборка
+frontend/dist
+
+# Системные
+.DS_Store
+*.log

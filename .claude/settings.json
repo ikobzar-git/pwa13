@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/ikobzar/Downloads/**)",
+      "Read(//Users/ikobzar/**)",
+      "Read(//private/tmp/**)",
+      "Bash(find /Users/ikobzar -maxdepth 3 -name *.png -newer /Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/frontend/public/logo13.png -not -path */node_modules/* -not -path */.git/* -not -path */dist/* -not -path */venv/* -not -path */Library/*)",
+      "Bash(ls -la \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/\"*.png \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/\"*.jpg \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/\"*.jpeg \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/\"*.webp)",
+      "Bash(rsync -avz --delete -e \"sshpass -p 'Voc3eqvSeM%Q' ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no\" frontend/dist/ root@90.156.253.143:/var/www/app.gaub.ru/)",
+      "Bash(sshpass -p 'Voc3eqvSeM%Q' rsync -avz --delete -e \"ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no\" frontend/dist/ root@90.156.253.143:/var/www/app.gaub.ru/)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/frontend/public/logo13.png\")",
+      "Bash(sips -z 256 256 \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/frontend/public/logo13.png\" --out \"/Users/ikobzar/Yandex.Disk.localized/Работа/13/Приложение/frontend/public/logo13.png\")",
+      "Bash(sshpass -p 'Voc3eqvSeM%Q' rsync -avz -e \"ssh -o StrictHostKeyChecking=no -o PubkeyAuthentication=no\" frontend/public/logo13.png root@90.156.253.143:/var/www/app.gaub.ru/logo13.png)",
+      "Bash(git --version)"
+    ]
+  }
+}

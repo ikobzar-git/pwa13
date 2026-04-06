@@ -1,0 +1,51 @@
+# Продакшен: Postgres + Laravel (только localhost), без Vite.
+# Статику фронта отдаёт Caddy с хоста (см. deploy/caddy-app.gaub.ru.snippet).
+# Первый запуск без vendor: из /opt/pwa13 выполнить
+#   docker compose --env-file .env.deploy -f docker-compose.prod.yml run --rm --no-deps app sh -c "cd /var/www/backend && composer install --no-dev --no-interaction"
+# затем: docker compose ... restart app
+name: pwa13-prod
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pwa13-prod-app
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - .:/var/www
+    ports:
+      - "127.0.0.1:18001:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      DB_HOST: postgres-db
+      DB_PORT: "5432"
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    command: php artisan serve --host=0.0.0.0 --port=8000
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: pwa13-prod-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:15432:5432"
+    environment:
+      POSTGRES_DB: pwa13_db
+      POSTGRES_USER: pwa13
+      POSTGRES_PASSWORD: ${PWA13_DB_PASSWORD:-pwa13secret_prod_change}
+    volumes:
+      - pwa13_prod_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pwa13 -d pwa13_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pwa13_prod_pgdata:

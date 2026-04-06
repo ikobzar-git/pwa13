@@ -1,0 +1,59 @@
+name: pwa13
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pwa13-app
+    restart: unless-stopped
+    working_dir: /var/www/backend
+    volumes:
+      - .:/var/www
+    ports:
+      - "8001:8000"
+    environment:
+      - APP_ENV=local
+      - DB_HOST=postgres-db
+      - DB_PORT=5432
+      - DB_DATABASE=pwa13_db
+      - DB_USERNAME=pwa13
+      - DB_PASSWORD=pwa13secret
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: pwa13-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pwa13_db
+      POSTGRES_USER: pwa13
+      POSTGRES_PASSWORD: pwa13secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pwa13 -d pwa13_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  node:
+    image: node:20-alpine
+    container_name: pwa13-node
+    working_dir: /var/www/frontend
+    volumes:
+      - .:/var/www
+    environment:
+      VITE_API_URL: http://app:8000
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "5173:5173"
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:

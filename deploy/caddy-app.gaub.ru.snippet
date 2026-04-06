@@ -1,0 +1,28 @@
+# Добавить в /etc/caddy/Caddyfile на сервере (DNS A: app.gaub.ru -> IP сервера).
+# Статика: rsync frontend/dist -> /var/www/app.gaub.ru
+# После правки: caddy reload --config /etc/caddy/Caddyfile
+
+app.gaub.ru {
+	encode gzip zstd
+
+	@api path /api/*
+	handle @api {
+		reverse_proxy 127.0.0.1:18001
+	}
+
+	@sanctum path /sanctum/*
+	handle @sanctum {
+		reverse_proxy 127.0.0.1:18001
+	}
+
+	@storage path /storage/*
+	handle @storage {
+		reverse_proxy 127.0.0.1:18001
+	}
+
+	handle {
+		root * /var/www/app.gaub.ru
+		try_files {path} {path}/ /index.html
+		file_server
+	}
+}

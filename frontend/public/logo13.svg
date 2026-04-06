@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 200" fill="none">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="260" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#33FFDD"/>
+      <stop offset="50%" stop-color="#00C9B0"/>
+      <stop offset="100%" stop-color="#008F7A"/>
+    </linearGradient>
+  </defs>
+  <!-- "1" digit - blocky sport style -->
+  <path d="
+    M 30 10 L 80 10 L 80 150 L 110 150 L 110 190 L 0 190 L 0 150 L 30 150 Z
+    M 30 10 L 30 0 L 10 40 L 0 40 L 0 50 L 30 10
+  " fill="url(#g)" opacity="0"/>
+
+  <!-- Digit 1 - clean block style -->
+  <g fill="url(#g)">
+    <!-- Vertical bar of 1 -->
+    <rect x="32" y="8" width="32" height="182" rx="2"/>
+    <!-- Top serif of 1 -->
+    <polygon points="16,48 32,8 32,48"/>
+    <!-- Bottom base of 1 -->
+    <rect x="8" y="160" width="80" height="32" rx="2"/>
+  </g>
+
+  <!-- Digit 3 - block style with cutouts -->
+  <g fill="url(#g)">
+    <!-- Top horizontal -->
+    <rect x="108" y="8" width="140" height="32" rx="2"/>
+    <!-- Middle horizontal -->
+    <rect x="138" y="84" width="110" height="32" rx="2"/>
+    <!-- Bottom horizontal -->
+    <rect x="108" y="160" width="140" height="32" rx="2"/>
+    <!-- Right vertical top -->
+    <rect x="216" y="8" width="32" height="108" rx="2"/>
+    <!-- Right vertical bottom -->
+    <rect x="216" y="84" width="32" height="108" rx="2"/>
+  </g>
+</svg>
