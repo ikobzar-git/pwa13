@@ -27,7 +27,7 @@ services:
     depends_on:
       postgres-db:
         condition: service_healthy
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: sh -c "echo '* * * * * cd /var/www/backend && php artisan schedule:run >> /dev/null 2>&1' | crontab - && crond && php artisan serve --host=0.0.0.0 --port=8000"
 
   postgres-db:
     image: postgres:15-alpine
