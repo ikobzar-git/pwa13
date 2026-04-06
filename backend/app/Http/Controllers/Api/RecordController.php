@@ -172,8 +172,29 @@ class RecordController extends Controller
             'company_id' => 'required|string',
         ]);
 
+        $user = $request->user();
+        $companyId = $request->company_id;
+
+        if (! in_array($user->role, ['staff', 'manager'], true)) {
+            try {
+                $record = $this->yclients->getRecord($companyId, $recordId);
+                $recordClientId = $record['client']['id'] ?? null;
+                $ownerById = $user->yclients_client_id && $recordClientId && (int) $recordClientId === (int) $user->yclients_client_id;
+                if (! $ownerById) {
+                    $recordPhone = $record['client']['phone'] ?? null;
+                    $userPhone = $user->phone ? YclientsService::normalizePhone($user->phone) : '';
+                    $ownerByPhone = $recordPhone && $userPhone && YclientsService::normalizePhone((string) $recordPhone) === $userPhone;
+                    if (! $ownerByPhone) {
+                        return response()->json(['message' => 'Вы не можете отменить чужую запись'], 403);
+                    }
+                }
+            } catch (\Throwable $e) {
+                return response()->json(['message' => 'Не удалось проверить запись'], 503);
+            }
+        }
+
         try {
-            $this->yclients->deleteRecord($request->company_id, $recordId);
+            $this->yclients->deleteRecord($companyId, $recordId);
             return response()->json(['success' => true]);
         } catch (\Throwable $e) {
             Log::warning('Yclients deleteRecord failed', ['error' => $e->getMessage()]);

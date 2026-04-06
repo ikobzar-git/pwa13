@@ -16,7 +16,6 @@ class User extends Authenticatable
         'email',
         'password',
         'name',
-        'role',
         'yclients_staff_id',
         'yclients_client_id',
         'telegram_chat_id',

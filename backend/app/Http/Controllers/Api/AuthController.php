@@ -95,10 +95,11 @@ class AuthController extends Controller
             if (! $user) {
                 $user = User::create([
                     'phone' => $phone,
-                    'role' => 'staff',
                     'name' => $staffMatch['name'] ?? null,
                     'yclients_staff_id' => $staffMatch['id'] ?? null,
                 ]);
+                $user->role = 'staff';
+                $user->save();
             } else {
                 $user->role = 'staff';
                 if ($staffMatch) {
@@ -153,10 +154,11 @@ class AuthController extends Controller
 
             $user = User::create([
                 'phone' => $phone,
-                'role' => 'client',
                 'name' => $clientData ? ($clientData['name'] ?? $clientData['first_name'] ?? null) : null,
                 'yclients_client_id' => $clientData ? ($clientData['id'] ?? null) : null,
             ]);
+            $user->role = 'client';
+            $user->save();
         }
 
         if ($companyId) {
@@ -234,7 +236,7 @@ class AuthController extends Controller
         $cachedCode = Cache::get(self::CODE_CACHE_PREFIX.$phone);
         $codeValid = $cachedCode && $cachedCode === $code;
 
-        if (! $codeValid && ! app()->environment('local')) {
+        if (! $codeValid && ! config('app.bypass_otp', false)) {
             throw ValidationException::withMessages(['code' => ['Неверный или устаревший код.']]);
         }
 

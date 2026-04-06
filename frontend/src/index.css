@@ -2,12 +2,12 @@
   --bg: #0A0A0A;
   --surface: #111316;
   --surface2: #181B20;
-  --border: #262A30;
+  --border: #3A4048;
   --gold: #00E5CC;
   --gold-dim: rgba(0,229,204,0.08);
   --text: #FFFFFF;
-  --text-sec: #8A8F98;
-  --text-muted: #4A4F58;
+  --text-sec: #9DA2AB;
+  --text-muted: #6B7280;
   --error: #FF5555;
   --radius: 8px;
 }
@@ -22,6 +22,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Fragment } from 'react';
 import { companies, records, favorites } from '../api';
 import { C, btn } from '../theme';
 import { SkeletonCard } from './Skeleton';
@@ -82,8 +82,6 @@ function ProgressBar({ step, totalSteps = 5 }) {
   );
 }
 
-import React from 'react';
-
 export default function BookingFlow({ user, onSuccess, onCancel, initialData, lock, preferredBranch, onBranchChange }) {
   const initialStep = lock?.companyId || preferredBranch ? STEP.SERVICE : STEP.COMPANY;
   const [step, setStep] = useState(initialStep);
@@ -99,6 +97,7 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
   const [selectedDate, setSelectedDate] = useState('');
   const [slot, setSlot] = useState(null);
   const [parkingReserve, setParkingReserve] = useState(false);
+  const [extraServices, setExtraServices] = useState([]);
 
   const now = new Date();
   const [calYear, setCalYear] = useState(now.getFullYear());
@@ -110,6 +109,7 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
   const [favIds, setFavIds] = useState(new Set());
 
   const slotsRef = useRef(null);
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     companies.list().then((list) => {
@@ -197,11 +197,13 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
   }, [selectedCompany?.id, staff === null ? 0 : staff?.id, selectedDate]);
 
   const handleSubmit = async () => {
+    if (submittingRef.current) return;
     if (!selectedCompany || !service || staff === undefined || !slot) return;
     if (!user) {
       setError('Войдите как клиент, затем снова откройте запись.');
       return;
     }
+    submittingRef.current = true;
     setLoading(true);
     setError('');
     try {
@@ -212,12 +214,17 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
       const seanceLength = service.seance_length ?? service.duration_min ?? service.length ?? 3600;
       const duration = typeof seanceLength === 'number' ? seanceLength : parseInt(seanceLength, 10) || 3600;
 
+      const extraDuration = extraServices.reduce((sum, es) => {
+        const d = es.seance_length ?? es.duration_min ?? es.length ?? 0;
+        return sum + (typeof d === 'number' ? d : parseInt(d, 10) || 0);
+      }, 0);
+
       const payload = {
         company_id: String(selectedCompany.id),
         staff_id: staff ? staff.id : 0,
-        services: [service.id],
+        services: [service.id, ...extraServices.map(es => es.id)],
         datetime,
-        seance_length: duration,
+        seance_length: duration + extraDuration,
       };
       if (parkingReserve && user?.car_number) {
         payload.parking = true;
@@ -230,6 +237,7 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
         companyName: selectedCompany?.name,
         serviceName: service?.title,
         servicePrice: service?.price_min ?? service?.cost,
+        serviceDuration: duration + extraDuration,
         staffName: staff?.name || 'Любой мастер',
         staffSlug: staff?.public_slug,
         datetime,
@@ -239,6 +247,7 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
       setError(err.body?.message || err.message || 'Ошибка записи');
     } finally {
       setLoading(false);
+      submittingRef.current = false;
     }
   };
 
@@ -450,6 +459,7 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
               ['Мастер', staff?.name || 'Любой мастер'],
               ['Дата и время', typeof slot === 'string' ? slot.replace('T', ' ').slice(0, 16) : slot],
               servicePrice && ['Стоимость', `${servicePrice} ₽`],
+              service?.seance_length && ['Длительность', `~${Math.round((service.seance_length || 3600) / 60)} мин`],
             ].filter(Boolean).map(([label, value], idx, arr) => (
               <div key={label} style={idx === arr.length - 1 ? styles.confirmRowLast : styles.confirmRow}>
                 <span style={styles.confirmLabel}>{label}</span>
@@ -469,6 +479,43 @@ export default function BookingFlow({ user, onSuccess, onCancel, initialData, lo
               <span>Забронировать парковку ({user.car_number})</span>
             </label>
           )}
+
+          {(() => {
+            const upsellItems = services
+              .filter(s => s.id !== service?.id && (s.seance_length ?? s.duration_min ?? Infinity) <= 1800)
+              .slice(0, 3);
+            if (!upsellItems.length) return null;
+            return (
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 8 }}>
+                  Добавьте к записи
+                </div>
+                {upsellItems.map(s => {
+                  const selected = extraServices.some(es => es.id === s.id);
+                  const price = s.price_min ?? s.cost;
+                  const dur = s.seance_length ?? s.duration_min;
+                  return (
+                    <button
+                      key={s.id}
+                      onClick={() => setExtraServices(prev =>
+                        selected ? prev.filter(es => es.id !== s.id) : [...prev, s]
+                      )}
+                      style={{
+                        ...btn.option(selected),
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>{s.title}</span>
+                      <span style={{ fontSize: 13, color: C.textSec, display: 'flex', gap: 8 }}>
+                        {dur && <span>{Math.round((typeof dur === 'number' ? dur : parseInt(dur, 10) || 0) / 60)} мин</span>}
+                        {price != null && <span>{price} ₽</span>}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
           {!user && (
             <p style={{ ...styles.emptyText, marginBottom: 12, color: C.gold }}>

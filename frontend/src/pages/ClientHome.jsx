@@ -115,10 +115,7 @@ export default function ClientHome({ onLogout, roleSwitch }) {
             {user?.name || user?.phone || 'Клиент'}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {roleSwitch && <RoleSwitch roleSwitch={roleSwitch} />}
-          <button style={btn.secondary} onClick={onLogout}>Выйти</button>
-        </div>
+        {roleSwitch && <RoleSwitch roleSwitch={roleSwitch} />}
       </div>
 
       {activeTab === 'home' && (
@@ -162,7 +159,7 @@ export default function ClientHome({ onLogout, roleSwitch }) {
       {activeTab === 'profile' && (
         <div style={cs.section}>
           <div style={cs.profilePageTitle}>Мой профиль</div>
-          <ProfileSection user={user} onUpdate={updateUser} />
+          <ProfileSection user={user} onUpdate={updateUser} onLogout={onLogout} />
         </div>
       )}
 
@@ -207,8 +204,8 @@ export default function ClientHome({ onLogout, roleSwitch }) {
 
       <BottomNav tabs={[
         { id: 'home', icon: Icons.home, label: 'Главная' },
+        { id: 'book', icon: Icons.plus, label: 'Записаться', accent: true },
         { id: 'chat', icon: Icons.chat, label: 'Чат', badge: unreadCount },
-        { id: 'book', icon: Icons.plus, label: 'Записаться' },
         { id: 'profile', icon: Icons.user, label: 'Профиль' },
       ]} activeTab={activeTab} onTabChange={handleTabChange} />
       <Toast />

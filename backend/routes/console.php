@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('remind:staff')->everyMinute();
 Schedule::command('remind:client')->everyFiveMinutes();
+Schedule::command('records:remind')->everyThirtyMinutes();

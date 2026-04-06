@@ -3,12 +3,13 @@ import { C, card, input, btn } from '../theme';
 import { profile } from '../api';
 import { useApp } from '../contexts/AppContext';
 
-export default function ProfileSection({ user, onUpdate }) {
+export default function ProfileSection({ user, onUpdate, onLogout }) {
   const { showToast } = useApp();
   const [open, setOpen] = useState(false);
   const [prefs, setPrefs] = useState(user?.preferences || '');
   const [carNum, setCarNum] = useState(user?.car_number || '');
   const [saving, setSaving] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     setPrefs(user?.preferences || '');
@@ -87,6 +88,44 @@ export default function ProfileSection({ user, onUpdate }) {
           >
             {saving ? 'Сохранение...' : 'Сохранить'}
           </button>
+        </div>
+      )}
+
+      {onLogout && (
+        <div style={{ marginTop: 16, borderTop: `1px solid ${C.border}`, paddingTop: 16 }}>
+          {!showLogoutConfirm ? (
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              style={{ ...btn.ghost, color: C.error, width: '100%', textAlign: 'center', fontSize: 14 }}
+            >
+              Выйти из аккаунта
+            </button>
+          ) : (
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ fontSize: 13, color: C.textSec, marginBottom: 12, lineHeight: 1.5 }}>
+                Вы уверены? Для повторного входа потребуется код из Telegram.
+              </p>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setShowLogoutConfirm(false)}
+                  style={{ ...btn.secondary, flex: 1 }}
+                >
+                  Отмена
+                </button>
+                <button
+                  onClick={onLogout}
+                  style={{
+                    ...btn.primary,
+                    flex: 1,
+                    background: C.error,
+                    boxShadow: 'none',
+                  }}
+                >
+                  Выйти
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

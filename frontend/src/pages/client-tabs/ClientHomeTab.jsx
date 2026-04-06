@@ -100,10 +100,16 @@ export default function ClientHomeTab({ bookingSuccess, onDismissSuccess, onBook
         const staffName = b.staffName || '';
 
         const addToCalendar = () => {
-          const start = dt.replace(/[-:]/g, '').replace('T', 'T') + '00';
+          const d = new Date(dt);
+          const pad = (n) => String(n).padStart(2, '0');
+          const fmt = (date) => `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
+          const start = fmt(d);
+          const duration = bookingSuccess._booking?.serviceDuration || 3600;
+          const endDate = new Date(d.getTime() + duration * 1000);
+          const end = fmt(endDate);
           const title = encodeURIComponent(`${svcTitle} — 13 by Timati`);
           const details = encodeURIComponent(`Мастер: ${staffName}\nФилиал: ${b.companyName || ''}`);
-          window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${start}&details=${details}`, '_blank');
+          window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`, '_blank');
         };
 
         const shareMaster = () => {
@@ -182,6 +188,20 @@ export default function ClientHomeTab({ bookingSuccess, onDismissSuccess, onBook
           </div>
         );
       })()}
+
+      {myRecords.length === 0 && !recordsLoading && history.length === 0 && !historyLoading && !bookingSuccess && (
+        <div style={{ padding: '60px 16px', textAlign: 'center' }}>
+          <div style={{ fontSize: 20, fontWeight: 700, color: C.text, textAlign: 'center' }}>
+            Добро пожаловать в 13 by Timati!
+          </div>
+          <div style={{ fontSize: 14, color: C.textSec, textAlign: 'center', marginTop: 8 }}>
+            Выберите мастера и запишитесь на удобное время
+          </div>
+          <button style={{ ...btn.primary, marginTop: 24 }} onClick={onBook}>
+            Записаться к мастеру
+          </button>
+        </div>
+      )}
 
       <div style={cs.section}>
         <div style={cs.sectionTitle}>Мои записи</div>

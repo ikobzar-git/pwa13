@@ -94,6 +94,24 @@ const styles = {
 
 const RESEND_DELAY = 30;
 
+function formatPhoneMask(raw) {
+  const digits = raw.replace(/\D/g, '').replace(/^8/, '7');
+  const d = digits.startsWith('7') ? digits.slice(1) : digits;
+  let result = '+7';
+  if (d.length > 0) result += ' (' + d.slice(0, 3);
+  if (d.length >= 3) result += ') ';
+  else if (d.length > 0) return result;
+  if (d.length > 3) result += d.slice(3, 6);
+  if (d.length > 6) result += '-' + d.slice(6, 8);
+  if (d.length > 8) result += '-' + d.slice(8, 10);
+  return result;
+}
+
+function normalizePhone(formatted) {
+  const digits = formatted.replace(/\D/g, '').replace(/^8/, '7');
+  return digits.startsWith('7') ? '+' + digits : '+7' + digits;
+}
+
 export default function LoginPage({ onLogin, limitToMode, onClose, initialMode = 'client' }) {
   const navigate = useNavigate();
   const mode = limitToMode || initialMode;
@@ -134,7 +152,8 @@ export default function LoginPage({ onLogin, limitToMode, onClose, initialMode =
     setLoading(true);
     try {
       const sendCode = mode === 'staff' ? auth.staffSendCode : auth.clientSendCode;
-      const res = await sendCode(phone);
+      const normalizedPhone = normalizePhone(phone);
+      const res = await sendCode(normalizedPhone);
       setCodeMethod(res.method || 'sms');
       setBotUsername(res.bot_username || '');
       setStep('code');
@@ -152,7 +171,7 @@ export default function LoginPage({ onLogin, limitToMode, onClose, initialMode =
     setLoading(true);
     try {
       const verify = mode === 'staff' ? auth.staffVerify : auth.clientVerify;
-      const res = await verify(phone, code);
+      const res = await verify(normalizePhone(phone), code);
       if (res.user && res.token) {
         if (mode === 'client') {
           onLogin({ ...res, user: { ...res.user, role: 'client' } });
@@ -191,14 +210,19 @@ export default function LoginPage({ onLogin, limitToMode, onClose, initialMode =
           <form onSubmit={handleSendCode}>
             <input
               type="tel"
-              placeholder="Телефон"
+              placeholder="+7 (___) ___-__-__"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onFocus={() => { if (!phone) setPhone('+7 ('); }}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.replace(/\D/g, '').length === 0) { setPhone(''); return; }
+                setPhone(formatPhoneMask(val));
+              }}
               style={input.base}
               required
             />
             {error && <div className="error" style={{ marginBottom: 10 }}>{error}</div>}
-            <button type="submit" style={btn.primary} disabled={loading}>
+            <button type="submit" style={btn.primary} disabled={loading || phone.replace(/\D/g, '').length < 11}>
               {loading ? 'Отправка...' : 'Получить код'}
             </button>
             <p style={styles.hint}>
@@ -219,9 +243,12 @@ export default function LoginPage({ onLogin, limitToMode, onClose, initialMode =
                 background: 'rgba(0,229,204,0.08)', border: '1px solid rgba(0,229,204,0.2)',
                 borderRadius: 12, padding: '14px 16px', marginBottom: 16, textAlign: 'center',
               }}>
-                <p style={{ fontSize: 13, color: C.text, margin: '0 0 10px', lineHeight: 1.5 }}>
-                  Откройте бота и отправьте номер телефона, чтобы получить код:
-                </p>
+                <div style={{ fontSize: 13, color: C.text, margin: '0 0 10px', lineHeight: 1.6, textAlign: 'left' }}>
+                  <div>1. Откройте бота по кнопке ниже</div>
+                  <div>2. Нажмите «Старт» (Start)</div>
+                  <div>3. Отправьте свой номер телефона кнопкой</div>
+                  <div>4. Скопируйте полученный код и вернитесь сюда</div>
+                </div>
                 <a
                   href={`https://t.me/${botUsername}`}
                   target="_blank"

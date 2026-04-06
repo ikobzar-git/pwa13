@@ -97,7 +97,7 @@ const styles = {
     maxWidth: 640,
     margin: '0 auto',
   },
-  tab: (active) => ({
+  tab: (active, accent) => ({
     background: 'none',
     border: 'none',
     display: 'flex',
@@ -106,9 +106,9 @@ const styles = {
     gap: 2,
     cursor: 'pointer',
     padding: '10px 8px',
-    color: active ? C.gold : C.textMuted,
-    fontSize: 10,
-    fontWeight: active ? 700 : 400,
+    color: active ? C.gold : (accent ? C.gold : C.textSec),
+    fontSize: 11,
+    fontWeight: active ? 700 : (accent ? 600 : 400),
   }),
   iconWrap: {
     position: 'relative',
@@ -141,7 +141,7 @@ export default function BottomNav({ tabs, activeTab, onTabChange }) {
   return (
     <nav style={styles.nav}>
       {tabs.map(t => (
-        <button key={t.id} style={styles.tab(activeTab === t.id)} onClick={() => onTabChange(t.id)}>
+        <button key={t.id} style={styles.tab(activeTab === t.id, t.accent)} onClick={() => onTabChange(t.id)}>
           <span style={styles.iconWrap}>
             {t.icon}
             {t.badge > 0 && <span style={styles.badge}>{t.badge > 99 ? '99+' : t.badge}</span>}

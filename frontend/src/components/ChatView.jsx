@@ -82,7 +82,7 @@ const styles = {
     color: C.text,
   }),
   time: (isMine) => ({
-    fontSize: 10,
+    fontSize: 11,
     color: C.textMuted,
     marginTop: 3,
     paddingLeft: isMine ? 0 : 2,

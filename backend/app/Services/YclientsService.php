@@ -177,6 +177,11 @@ class YclientsService
         return $this->request('POST', "/records/{$companyId}", $payload);
     }
 
+    public function getRecord(string $companyId, string $recordId): array
+    {
+        return $this->request('GET', "/record/{$companyId}/{$recordId}");
+    }
+
     public function deleteRecord(string $companyId, string $recordId): array
     {
         return $this->request('DELETE', "/record/{$companyId}/{$recordId}");
