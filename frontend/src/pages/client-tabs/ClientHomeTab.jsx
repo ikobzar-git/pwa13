@@ -100,16 +100,24 @@ export default function ClientHomeTab({ bookingSuccess, onDismissSuccess, onBook
         const staffName = b.staffName || '';
 
         const addToCalendar = () => {
-          const d = new Date(dt);
-          const pad = (n) => String(n).padStart(2, '0');
-          const fmt = (date) => `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
-          const start = fmt(d);
-          const duration = bookingSuccess._booking?.serviceDuration || 3600;
-          const endDate = new Date(d.getTime() + duration * 1000);
-          const end = fmt(endDate);
-          const title = encodeURIComponent(`${svcTitle} — 13 by Timati`);
-          const details = encodeURIComponent(`Мастер: ${staffName}\nФилиал: ${b.companyName || ''}`);
-          window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`, '_blank');
+          try {
+            const d = new Date(dt);
+            if (isNaN(d.getTime())) return;
+            const pad = (n) => String(n).padStart(2, '0');
+            const fmt = (date) => `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
+            const start = fmt(d);
+            const duration = bookingSuccess._booking?.serviceDuration || 3600;
+            const endDate = new Date(d.getTime() + duration * 1000);
+            const end = fmt(endDate);
+            const title = encodeURIComponent(`${svcTitle} — 13 by Timati`);
+            const details = encodeURIComponent(`Мастер: ${staffName}\nФилиал: ${b.companyName || ''}`);
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.click();
+          } catch {}
         };
 
         const shareMaster = () => {
